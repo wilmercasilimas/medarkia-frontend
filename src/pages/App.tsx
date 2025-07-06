@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import axios from "./api/axiosInstance";
+import axios from "@/api/axiosInstance";
 
 function App() {
   useEffect(() => {
