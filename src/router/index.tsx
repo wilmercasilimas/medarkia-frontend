@@ -1,9 +1,12 @@
-// src/router/index.tsx
 import { createBrowserRouter } from "react-router-dom";
 import DashboardLayout from "@/layouts/DashboardLayout";
+import LoginLayout from "@/layouts/LoginLayout";
+import ErrorPage from "@/pages/ErrorPage";
 import App from "@/pages/App";
+import LoginPage from "@/pages/LoginPage";
+import ProtectedRoute from "@/router/ProtectedRoute";
 
-// Módulos (páginas principales por rol o sección)
+// Módulos (rutas privadas - protegidas)
 import UsuariosPage from "@/pages/usuarios/UsuariosPage";
 import DoctoresPage from "@/pages/doctores/DoctoresPage";
 import PacientesPage from "@/pages/pacientes/PacientesPage";
@@ -16,19 +19,31 @@ import AuditoriaPage from "@/pages/auditoria/AuditoriaPage";
 
 export const router = createBrowserRouter([
   {
-    path: "/",
-    element: <DashboardLayout />,
+    path: "/login",
+    element: <LoginLayout />,
+    errorElement: <ErrorPage />,
+    children: [{ index: true, element: <LoginPage /> }],
+  },
+  {
+    element: <ProtectedRoute />, // 🔒 Protege todo lo que está debajo
     children: [
-      { index: true, element: <App /> },
-      { path: "usuarios", element: <UsuariosPage /> },
-      { path: "doctores", element: <DoctoresPage /> },
-      { path: "pacientes", element: <PacientesPage /> },
-      { path: "citas", element: <CitasPage /> },
-      { path: "historial", element: <HistorialPage /> },
-      { path: "recetas", element: <RecetasPage /> },
-      { path: "archivos", element: <ArchivosPage /> },
-      { path: "bloqueos", element: <BloqueosPage /> },
-      { path: "auditoria", element: <AuditoriaPage /> },
+      {
+        path: "/",
+        element: <DashboardLayout />,
+        errorElement: <ErrorPage />,
+        children: [
+          { index: true, element: <App /> },
+          { path: "usuarios", element: <UsuariosPage /> },
+          { path: "doctores", element: <DoctoresPage /> },
+          { path: "pacientes", element: <PacientesPage /> },
+          { path: "citas", element: <CitasPage /> },
+          { path: "historial", element: <HistorialPage /> },
+          { path: "recetas", element: <RecetasPage /> },
+          { path: "archivos", element: <ArchivosPage /> },
+          { path: "bloqueos", element: <BloqueosPage /> },
+          { path: "auditoria", element: <AuditoriaPage /> },
+        ],
+      },
     ],
   },
 ]);
