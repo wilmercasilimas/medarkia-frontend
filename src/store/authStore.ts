@@ -1,11 +1,17 @@
 import { create } from "zustand";
 
+interface Avatar {
+  url: string;
+  public_id?: string;
+}
+
 interface Usuario {
   id: string;
   nombre: string;
   apellido: string;
   email: string;
   rol: string;
+  avatar?: Avatar;
 }
 
 interface AuthState {

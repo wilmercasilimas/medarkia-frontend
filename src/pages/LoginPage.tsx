@@ -6,6 +6,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { rutaDashboardPorRol } from "@/router/rolRedirect";
 
 const schema = z.object({
   email: z.string().email("Correo inválido"),
@@ -25,12 +26,14 @@ export default function LoginPage() {
 
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
 
   const onSubmit = async (data: FormData) => {
     setError("");
+    setLoading(true);
     try {
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/auth/login`,
@@ -38,15 +41,20 @@ export default function LoginPage() {
       );
 
       login(res.data); // token + usuario
-      navigate("/");
+
+      setTimeout(() => {
+        setLoading(false);
+        navigate(rutaDashboardPorRol(res.data.usuario.rol));
+      }, 2000);
     } catch {
       setError("Credenciales inválidas o error de conexión.");
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-blue-50 to-green-50 dark:from-zinc-900 dark:to-zinc-800 transition-colors px-4">
-      <div className="w-full max-w-md bg-white dark:bg-zinc-900 shadow-2xl rounded-2xl p-8 sm:p-10 md:p-12 lg:p-14 xl:p-16 2xl:p-20">
+      <div className="w-full max-w-xl bg-white dark:bg-zinc-900 shadow-2xl rounded-2xl p-8 sm:p-10 md:p-12 lg:p-14 xl:p-16 2xl:p-20">
         <h1 className="text-3xl font-bold text-center text-green-700 dark:text-green-400 mb-6">
           Medarkia
         </h1>
@@ -64,7 +72,7 @@ export default function LoginPage() {
             <input
               type="email"
               {...register("email")}
-              className="mt-1 w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="mt-1 w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
               placeholder="correo@ejemplo.com"
             />
             {errors.email && (
@@ -81,7 +89,7 @@ export default function LoginPage() {
             <input
               type={showPassword ? "text" : "password"}
               {...register("password")}
-              className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-4 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white px-4 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
               placeholder="••••••••"
             />
             <button
@@ -101,9 +109,39 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-sm font-medium transition-all"
+            disabled={loading}
+            className={`w-full py-2 rounded-lg text-sm font-medium transition-all ${
+              loading
+                ? "bg-green-400 text-white cursor-not-allowed"
+                : "bg-green-600 hover:bg-green-700 text-white"
+            }`}
           >
-            Iniciar sesión
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg
+                  className="animate-spin h-4 w-4 text-white"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z"
+                  ></path>
+                </svg>
+                Iniciando sesión...
+              </span>
+            ) : (
+              "Iniciar sesión"
+            )}
           </button>
         </form>
       </div>

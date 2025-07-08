@@ -16,6 +16,10 @@ import RecetasPage from "@/pages/recetas/RecetasPage";
 import ArchivosPage from "@/pages/archivos/ArchivosPage";
 import BloqueosPage from "@/pages/bloqueos/BloqueosPage";
 import AuditoriaPage from "@/pages/auditoria/AuditoriaPage";
+import AdminDashboardPage from "@/pages/dashboard/AdminDashboardPage";
+import DoctorDashboardPage from "@/pages/dashboard/DoctorDashboardPage";
+import AsistenteDashboardPage from "@/pages/dashboard/AsistenteDashboardPage";
+import PacienteDashboardPage from "@/pages/dashboard/PacienteDashboardPage";
 
 export const router = createBrowserRouter([
   {
@@ -42,6 +46,10 @@ export const router = createBrowserRouter([
           { path: "archivos", element: <ArchivosPage /> },
           { path: "bloqueos", element: <BloqueosPage /> },
           { path: "auditoria", element: <AuditoriaPage /> },
+          { path: "dashboard/admin", element: <AdminDashboardPage /> },
+          { path: "dashboard/doctor", element: <DoctorDashboardPage /> },
+          { path: "dashboard/asistente", element: <AsistenteDashboardPage /> },
+          { path: "dashboard/paciente", element: <PacienteDashboardPage /> },
         ],
       },
     ],
