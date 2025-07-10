@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import logo from "@/assets/LogoMedarkia.png";
 import { textButton } from "@/styles/buttons";
+import { useState } from "react";
+import { CambiarPasswordModal } from "@/components/usuarios/CambiarPasswordModal";
 
 type SidebarProps = {
   cerrarMenu?: () => void;
@@ -12,6 +14,8 @@ export default function Sidebar({ cerrarMenu }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const logout = useAuthStore((state) => state.logout);
+  const usuario = useAuthStore((state) => state.user);
+  const [modalAbierto, setModalAbierto] = useState(false);
 
   const handleClick = () => {
     if (cerrarMenu) cerrarMenu();
@@ -42,17 +46,21 @@ export default function Sidebar({ cerrarMenu }: SidebarProps) {
         >
           <Home size={20} /> Inicio
         </Link>
-        <Link
-          to="/usuarios"
-          className={`flex items-center gap-2 ${
-            location.pathname === "/usuarios"
-              ? "text-primary font-semibold"
-              : "text-gray-700 dark:text-gray-200"
-          } hover:text-primary`}
-          onClick={handleClick}
-        >
-          <User size={20} /> Usuarios
-        </Link>
+
+        {usuario?.rol === "admin" && (
+          <Link
+            to="/usuarios"
+            className={`flex items-center gap-2 ${
+              location.pathname === "/usuarios"
+                ? "text-primary font-semibold"
+                : "text-gray-700 dark:text-gray-200"
+            } hover:text-primary`}
+            onClick={handleClick}
+          >
+            <User size={20} /> Usuarios
+          </Link>
+        )}
+
         <Link
           to="/citas"
           className={`flex items-center gap-2 ${
@@ -64,6 +72,7 @@ export default function Sidebar({ cerrarMenu }: SidebarProps) {
         >
           <Calendar size={20} /> Citas
         </Link>
+
         <Link
           to="/historial"
           className={`flex items-center gap-2 ${
@@ -79,15 +88,28 @@ export default function Sidebar({ cerrarMenu }: SidebarProps) {
 
       {/* Pie del sidebar */}
       <div className="flex flex-col items-center gap-2 mt-6">
-        <p className="text-xs text-zinc-400">
-          <button
-            onClick={handleLogout}
-            className={`flex items-center gap-2 ${textButton}`}
-          >
-            <LogOut size={16} />
-            Cerrar sesión
-          </button>
-          <br />
+        <button
+          onClick={() => setModalAbierto(true)}
+          className="text-sm text-gray-600 dark:text-gray-300 hover:text-green-600 transition"
+        >
+          🔒 Cambiar contraseña
+        </button>
+
+        <button
+          onClick={handleLogout}
+          className={`flex items-center gap-2 ${textButton}`}
+        >
+          <LogOut size={16} />
+          Cerrar sesión
+        </button>
+
+        <CambiarPasswordModal
+          abierto={modalAbierto}
+          onClose={() => setModalAbierto(false)}
+          onSuccess={() => setModalAbierto(false)}
+        />
+
+        <p className="text-xs text-zinc-400 mt-2">
           &copy; {new Date().getFullYear()} Medarkia
         </p>
       </div>
