@@ -7,29 +7,42 @@ import { useAuthStore } from "@/store/authStore";
 import { CrearUsuarioModal } from "@/components/usuarios/CrearUsuarioModal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { FormularioUsuarioModal } from "@/components/usuarios/FormularioUsuarioModal";
-import { asegurarId } from "@/utils/asegurarId"; // ✅ se importa el helper
+import { UsuarioCard } from "@/components/usuarios/UsuarioCard"; // ✅ nuevo
+import { asegurarId } from "@/utils/asegurarId";
 import type { Usuario } from "@/types/Usuario";
+import { FiltroUsuarios } from "@/components/usuarios/FiltroUsuarios";
 
 export default function UsuariosPage() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [mostrarModal, setMostrarModal] = useState(false);
-  const [usuarioEnEdicion, setUsuarioEnEdicion] = useState<Usuario | null>(null);
-  const [usuarioAEliminar, setUsuarioAEliminar] = useState<Usuario | null>(null);
+  const [usuarioEnEdicion, setUsuarioEnEdicion] = useState<Usuario | null>(
+    null
+  );
+  const [usuarioAEliminar, setUsuarioAEliminar] = useState<Usuario | null>(
+    null
+  );
   const [errorEliminar, setErrorEliminar] = useState("");
   const { user, token } = useAuthStore();
+  const [filtros, setFiltros] = useState<{
+    rol?: string;
+    cedula?: string;
+    texto?: string;
+  }>({});
 
   const obtenerUsuarios = useCallback(() => {
     if (!token) return;
     axios
       .get(`${import.meta.env.VITE_API_URL}/usuarios`, {
         headers: { Authorization: `Bearer ${token}` },
+        params: filtros,
       })
+
       .then((res) => {
-        const usuariosConId = res.data.map(asegurarId); // ✅ sin any
+        const usuariosConId = res.data.map(asegurarId);
         setUsuarios(usuariosConId);
       })
       .catch((err) => console.error("Error al obtener usuarios", err));
-  }, [token]);
+  }, [token, filtros]);
 
   const eliminarUsuario = async () => {
     if (!usuarioAEliminar || !usuarioAEliminar.id || !token) {
@@ -56,7 +69,7 @@ export default function UsuariosPage() {
 
   useEffect(() => {
     obtenerUsuarios();
-  }, [obtenerUsuarios]);
+  }, [obtenerUsuarios, filtros]);
 
   if (!user) {
     return (
@@ -82,7 +95,7 @@ export default function UsuariosPage() {
           className={`${primaryButton} flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2`}
           onClick={() => {
             setMostrarModal(true);
-            setErrorEliminar(""); // 🧼 limpiar error
+            setErrorEliminar("");
           }}
         >
           <span className="sm:hidden">
@@ -104,13 +117,16 @@ export default function UsuariosPage() {
         </button>
       </div>
 
+      <FiltroUsuarios onFiltrar={setFiltros} />
+
       {errorEliminar && (
         <p className="text-red-500 text-sm font-medium -mt-4 mb-2">
           {errorEliminar}
         </p>
       )}
 
-      <div className="overflow-x-auto rounded-lg shadow-md">
+      {/* Tabla para escritorio */}
+      <div className="hidden sm:block overflow-x-auto rounded-lg shadow-md">
         <table className="min-w-full bg-white dark:bg-zinc-900 text-sm">
           <thead>
             <tr className="text-left text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-zinc-700">
@@ -157,7 +173,7 @@ export default function UsuariosPage() {
                     <button
                       onClick={() => {
                         setUsuarioEnEdicion(usuario);
-                        setErrorEliminar(""); // 🧼 limpiar error
+                        setErrorEliminar("");
                       }}
                       className="text-green-600 hover:text-green-800"
                     >
@@ -186,42 +202,55 @@ export default function UsuariosPage() {
         </table>
       </div>
 
-      {/* Modal Crear Usuario */}
+      {/* Tarjetas para móviles */}
+      <div className="sm:hidden space-y-4">
+        {usuarios.length === 0 ? (
+          <p className="text-center text-gray-500 dark:text-gray-400">
+            No hay usuarios registrados.
+          </p>
+        ) : (
+          usuarios.map((usuario) => (
+            <UsuarioCard
+              key={usuario.id}
+              usuario={usuario}
+              onEditar={setUsuarioEnEdicion}
+              onEliminar={setUsuarioAEliminar}
+            />
+          ))
+        )}
+      </div>
+
       <CrearUsuarioModal
         abierto={mostrarModal}
         onClose={() => setMostrarModal(false)}
         onUsuarioCreado={obtenerUsuarios}
       />
 
-      {/* Modal Editar Usuario */}
       {usuarioEnEdicion && (
         <FormularioUsuarioModal
           abierto={!!usuarioEnEdicion}
           onClose={() => setUsuarioEnEdicion(null)}
           onSuccess={() => {
-            setUsuarioEnEdicion(null); // 1. cerrar modal
+            setUsuarioEnEdicion(null);
             setTimeout(() => {
-              obtenerUsuarios(); // 2. esperar y recargar
+              obtenerUsuarios();
             }, 300);
           }}
           usuario={usuarioEnEdicion}
         />
       )}
 
-      {/* Modal Confirmar Eliminación */}
       <ConfirmDialog
-  abierto={!!usuarioAEliminar}
-  onClose={() => {
-    setUsuarioAEliminar(null);
-    setErrorEliminar(""); // Limpia el error al cerrar
-  }}
-  onConfirm={eliminarUsuario}
-  titulo="Eliminar usuario"
-  mensaje={`¿Deseas eliminar a ${usuarioAEliminar?.nombre} ${usuarioAEliminar?.apellido}? Esta acción no se puede deshacer.`}
-  textoConfirmar="Eliminar"
-  
-/>
-
+        abierto={!!usuarioAEliminar}
+        onClose={() => {
+          setUsuarioAEliminar(null);
+          setErrorEliminar("");
+        }}
+        onConfirm={eliminarUsuario}
+        titulo="Eliminar usuario"
+        mensaje={`¿Deseas eliminar a ${usuarioAEliminar?.nombre} ${usuarioAEliminar?.apellido}? Esta acción no se puede deshacer.`}
+        textoConfirmar="Eliminar"
+      />
     </div>
   );
 }
